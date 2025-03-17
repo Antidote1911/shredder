@@ -35,6 +35,7 @@ jobs:
         override: true
         
     - name: Download Botan
+      shell: cmd
       run: |
         curl -L -o botan.zip https://github.com/randombit/botan/archive/refs/tags/3.7.1.zip
         tar -xvf botan.zip
