@@ -33,6 +33,14 @@ jobs:
       with:
         toolchain: stable
         override: true
+        
+   - name: Download Botan
+      run: |
+        curl -L -o botan.zip https://github.com/randombit/botan/archive/refs/tags/3.7.1.zip
+        tar -xvf botan.zip
+        cd botan-3.7.1
+        python configure.py --build-target=msvc --without-os-feature=win32_stats --disable-modules=sqlite3
+        nmake
 
     - name: build
       shell: cmd
