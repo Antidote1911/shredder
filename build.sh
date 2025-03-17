@@ -8,9 +8,9 @@ echo "${green}Choose to build in relese or debug mode${reset}"
 read -p "0 - Release, 1 - Debug" compil_flag
 
 if [[ $compil_flag == 0 ]]; then
-  cmake -S . -B build/release -D CMAKE_BUILD_TYPE=Release
-  cmake --build build/release
+  cmake -S . -B build -G "Ninja Multi-Config"
+  cmake --build build --config Release
 elif [[ $compil_flag == 1 ]]; then
-  cmake -S . -B build/debug -D CMAKE_BUILD_TYPE=Debug
-  cmake --build build/debug
+  cmake -S . -B build -G "Ninja Multi-Config"
+  cmake --build build --config Debug
 fi

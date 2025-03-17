@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 3.19)
+cmake_minimum_required(VERSION 3.20)
 project(shredder LANGUAGES CXX)
 message(STATUS "Initiating compile using CMake ${CMAKE_VERSION}")
 
 
-find_package(Qt6 6.5 REQUIRED COMPONENTS Core Widgets)
+find_package(Qt6 6 REQUIRED COMPONENTS Core Widgets)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_AUTORCC ON)
 qt_standard_project_setup()
