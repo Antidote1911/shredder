@@ -34,7 +34,7 @@ jobs:
         toolchain: stable
         override: true
         
-   - name: Download Botan
+    - name: Download Botan
       run: |
         curl -L -o botan.zip https://github.com/randombit/botan/archive/refs/tags/3.7.1.zip
         tar -xvf botan.zip
