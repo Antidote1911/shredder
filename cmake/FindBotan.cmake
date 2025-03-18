@@ -1,68 +1,42 @@
-function(find_botan_pkgconfig package_name botan_ver)
-  if(TARGET Botan::Botan)
-    return()
-  endif()
+# You need to put this file into the cmake_module_path for cmake to use it.
+# This file should go into a folder called cmake in your project root.
+# Guidance from https://gitlab.kitware.com/cmake/community/wikis/doc/tutorials/How-To-Find-Libraries#writing-find-modules
 
-  pkg_check_modules(
-    Botan
-    QUIET
-    IMPORTED_TARGET
-    ${package_name}
-  )
-  if(TARGET PkgConfig::Botan)
-    add_library(Botan::Botan ALIAS PkgConfig::Botan)
+# Sets Botan_FOUND, Botan_LIBRARIES, Botan_INCLUDE_DIRS, and creates an imported static library target named Botan::Botan
 
-    if(botan_ver EQUAL 3)
-      target_compile_features(PkgConfig::Botan INTERFACE cxx_std_20)
-    endif()
-  endif()
-endfunction()
+if (NOT WIN32)
+    find_package(PkgConfig)
+    pkg_check_modules(PC_BOTAN QUIET botan)
+    set(PC_BOTAN_DEFINITIONS ${PC_BOTAN_CFLAGS_OTHER})
+endif (NOT WIN32)
 
-function(find_botan_search package_name botan_ver)
-  if(TARGET Botan::Botan)
-    return()
-  endif()
-  find_path(
-    Botan_INCLUDE_DIRS
-    NAMES botan/botan.h
-    PATH_SUFFIXES ${package_name}
-    DOC "The Botan include directory"
-  )
+find_path(Botan_INCLUDE_DIR botan/build.h
+        HINTS ${PC_BOTAN_INCLUDEDIR} ${PC_BOTAN_INCLUDE_DIRS} "C:/"
+        PATH_SUFFIXES botan/include/botan-3
+        )
 
-  find_library(
-    Botan_LIBRARIES
-    NAMES botan ${package_name}
-    DOC "The Botan library"
-  )
-
-  mark_as_advanced(Botan_INCLUDE_DIRS Botan_LIBRARIES)
-
-  add_library(Botan::Botan IMPORTED UNKNOWN)
-  set_target_properties(
-    Botan::Botan
-    PROPERTIES
-    IMPORTED_LOCATION "${Botan_LIBRARIES}"
-    INTERFACE_INCLUDE_DIRECTORIES "${Botan_INCLUDE_DIRS}"
-  )
-  if(botan_ver EQUAL 3)
-    target_compile_features(Botan::Botan INTERFACE cxx_std_20)
-  endif()
-
-  if(WIN32)
-    target_compile_definitions(Botan::Botan INTERFACE -DNOMINMAX=1)
-  endif()
-endfunction()
-
-find_package(PkgConfig)
-if(NOT WIN32 AND PKG_CONFIG_FOUND)
-  # find_botan_pkgconfig(botan-2 2)
-  find_botan_pkgconfig(botan-3 3)
-endif()
-
-if(NOT TARGET Botan::Botan)
-  # find_botan_search(botan-2 2)
-  find_botan_search(botan-3 3)
-endif()
+find_library(Botan_LIBRARY NAMES botan-3
+        HINTS ${PC_BOTAN_LIBDIR} ${PC_BOTAN_LIBRARY_DIRS} "C:/"
+        PATH_SUFFIXES botan/lib)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(Botan REQUIRED_VARS Botan_LIBRARIES Botan_INCLUDE_DIRS)
+find_package_handle_standard_args(Botan DEFAULT_MSG
+        Botan_LIBRARY Botan_INCLUDE_DIR)
+mark_as_advanced(Botan_FOUND Botan_INCLUDE_DIR Botan_LIBRARY)
+
+if (Botan_FOUND)
+    get_filename_component(Botan_INCLUDE_DIRS ${Botan_INCLUDE_DIR} DIRECTORY)
+endif ()
+
+if (Botan_FOUND AND NOT TARGET Botan::Botan)
+    add_library(Botan::Botan STATIC IMPORTED)
+    if (MSVC)
+        target_compile_options(Botan::Botan INTERFACE /wd4250)
+    endif (MSVC)
+    target_include_directories(Botan::Botan
+            INTERFACE
+            ${Botan_INCLUDE_DIR})
+    set_target_properties(Botan::Botan PROPERTIES
+            IMPORTED_LOCATION ${Botan_LIBRARY}
+            )
+endif ()
