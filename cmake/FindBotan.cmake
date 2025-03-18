@@ -1,65 +1,68 @@
-# - Find botan
-# Find the botan cryptographic library
-#
-# This module defines the following variables:
-#   BOTAN_FOUND  -  True if library and include directory are found
-# If set to TRUE, the following are also defined:
-#   BOTAN_INCLUDE_DIRS  -  The directory where to find the header file
-#   BOTAN_LIBRARIES  -  Where to find the library files
-#
-# This file is in the public domain (https://github.com/vistle/vistle/blob/master/cmake/Modules/FindBOTAN.cmake)
+function(find_botan_pkgconfig package_name botan_ver)
+  if(TARGET Botan::Botan)
+    return()
+  endif()
+
+  pkg_check_modules(
+    Botan
+    QUIET
+    IMPORTED_TARGET
+    ${package_name}
+  )
+  if(TARGET PkgConfig::Botan)
+    add_library(Botan::Botan ALIAS PkgConfig::Botan)
+
+    if(botan_ver EQUAL 3)
+      target_compile_features(PkgConfig::Botan INTERFACE cxx_std_20)
+    endif()
+  endif()
+endfunction()
+
+function(find_botan_search package_name botan_ver)
+  if(TARGET Botan::Botan)
+    return()
+  endif()
+  find_path(
+    Botan_INCLUDE_DIRS
+    NAMES botan/botan.h
+    PATH_SUFFIXES ${package_name}
+    DOC "The Botan include directory"
+  )
+
+  find_library(
+    Botan_LIBRARIES
+    NAMES botan ${package_name}
+    DOC "The Botan library"
+  )
+
+  mark_as_advanced(Botan_INCLUDE_DIRS Botan_LIBRARIES)
+
+  add_library(Botan::Botan IMPORTED UNKNOWN)
+  set_target_properties(
+    Botan::Botan
+    PROPERTIES
+    IMPORTED_LOCATION "${Botan_LIBRARIES}"
+    INTERFACE_INCLUDE_DIRECTORIES "${Botan_INCLUDE_DIRS}"
+  )
+  if(botan_ver EQUAL 3)
+    target_compile_features(Botan::Botan INTERFACE cxx_std_20)
+  endif()
+
+  if(WIN32)
+    target_compile_definitions(Botan::Botan INTERFACE -DNOMINMAX=1)
+  endif()
+endfunction()
+
+find_package(PkgConfig)
+if(NOT WIN32 AND PKG_CONFIG_FOUND)
+  # find_botan_pkgconfig(botan-2 2)
+  find_botan_pkgconfig(botan-3 3)
+endif()
+
+if(NOT TARGET Botan::Botan)
+  # find_botan_search(botan-2 2)
+  find_botan_search(botan-3 3)
+endif()
 
 include(FindPackageHandleStandardArgs)
-
-set(BOTAN_VERSIONS botan-3 botan-2)
-set(BOTAN_NAMES botan-3 botan-2 botan)
-set(BOTAN_NAMES_DEBUG botand-3 botand-2 botand botan botan-3)
-
-find_path(
-    BOTAN_INCLUDE_DIR
-    NAMES botan/build.h
-    PATH_SUFFIXES ${BOTAN_VERSIONS}
-    DOC "The Botan include directory")
-if(BOTAN_INCLUDE_DIR)
-    file(READ "${BOTAN_INCLUDE_DIR}/botan/build.h" build)
-    string(REGEX MATCH "BOTAN_VERSION_MAJOR ([0-9]*)" _ ${build})
-    set(BOTAN_VERSION_MAJOR ${CMAKE_MATCH_1})
-    string(REGEX MATCH "BOTAN_VERSION_MINOR ([0-9]*)" _ ${build})
-    set(BOTAN_VERSION_MINOR ${CMAKE_MATCH_1})
-    string(REGEX MATCH "BOTAN_VERSION_PATCH ([0-9]*)" _ ${build})
-    set(BOTAN_VERSION_PATCH ${CMAKE_MATCH_1})
-    set(BOTAN_VERSION "${BOTAN_VERSION_MAJOR}.${BOTAN_VERSION_MINOR}.${BOTAN_VERSION_PATCH}")
-endif()
-
-find_library(
-    BOTAN_LIBRARY
-    NAMES ${BOTAN_NAMES}
-    PATH_SUFFIXES release/lib lib
-    DOC "The Botan (release) library")
-if(MSVC)
-    find_library(
-        BOTAN_LIBRARY_DEBUG
-        NAMES ${BOTAN_NAMES_DEBUG}
-        PATH_SUFFIXES debug/lib lib
-        DOC "The Botan debug library")
-    find_package_handle_standard_args(
-        Botan
-        REQUIRED_VARS BOTAN_LIBRARY BOTAN_LIBRARY_DEBUG BOTAN_INCLUDE_DIR
-        VERSION_VAR BOTAN_VERSION)
-else()
-    find_package_handle_standard_args(
-        Botan
-        REQUIRED_VARS BOTAN_LIBRARY BOTAN_INCLUDE_DIR
-        VERSION_VAR BOTAN_VERSION)
-endif()
-
-if(BOTAN_FOUND)
-    set(BOTAN_INCLUDE_DIRS ${BOTAN_INCLUDE_DIR})
-    if(MSVC)
-        set(BOTAN_LIBRARIES optimized ${BOTAN_LIBRARY} debug ${BOTAN_LIBRARY_DEBUG})
-    else()
-        set(BOTAN_LIBRARIES ${BOTAN_LIBRARY})
-    endif()
-endif()
-
-mark_as_advanced(BOTAN_INCLUDE_DIR BOTAN_LIBRARY BOTAN_LIBRARY_DEBUG)
+find_package_handle_standard_args(Botan REQUIRED_VARS Botan_LIBRARIES Botan_INCLUDE_DIRS)
