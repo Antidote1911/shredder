@@ -53,7 +53,7 @@ target_link_libraries(shredder
 
 if(MSVC)
   set(shredder
-      ${CMAKE_SOURCE_DIR}/icon.rc)
+      ${CMAKE_SOURCE_DIR}/src/icon.rc)
 endif()
 
 
