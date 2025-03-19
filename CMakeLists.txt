@@ -1,74 +1,35 @@
 cmake_minimum_required(VERSION 3.20)
-project(shredder LANGUAGES CXX)
-message(STATUS "Initiating compile using CMake ${CMAKE_VERSION}")
 
+project(shredder)
 
-find_package(Qt6 6 REQUIRED COMPONENTS Core Widgets)
+# Set c++ standard for all targets
 set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_AUTORCC ON)
-qt_standard_project_setup()
+
+
+if (WIN32)
+  if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
+    # using Clang
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    # using GCC
+    add_compile_options(-Wa,-mbig-obj)
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "Intel")
+    # using Intel C++
+  elseif (CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+    # using Visual Studio C++
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /Zc:__cplusplus")
+    add_definitions(/bigobj)
+  endif()
+endif (WIN32)
+
+if (UNIX)
+    # do something
+endif (UNIX)
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
 
-find_package(
-    Botan 3.7.1
-    REQUIRED
-)
-
-# Generate target 'botan_test' with specific modules
-# Any Botan module can be listed here
-botan_generate(
-    botan_test
-auto_rng
-rng
-system_rng
-)
-
-
-add_executable(shredder
-    WIN32 MACOSX_BUNDLE
-    main.cpp
-    widget.cpp
-    widget.h
-    widget.ui
-    Config.cpp Config.h Global.h PasswordGenerator.cpp PasswordGenerator.h PasswordHealth.cpp PasswordHealth.h Random.cpp Random.h
-    Clipboard.cpp Clipboard.h
-    rsc.qrc
-
-    Font.cpp Font.h
-
-)
-
-
-add_library(zxcvbn STATIC zxcvbn/zxcvbn.cpp)
-target_link_libraries(zxcvbn)
-
-target_link_libraries(shredder
-    PRIVATE
-        Qt::Core
-        Qt::Widgets
-        botan_test
-        zxcvbn
-)
-
-
-
-include(GNUInstallDirs)
-
-install(TARGETS shredder
-    BUNDLE  DESTINATION .
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-)
-
-qt_generate_deploy_app_script(
-    TARGET shredder
-    OUTPUT_SCRIPT deploy_script
-    NO_UNSUPPORTED_PLATFORM_ERROR
-)
-install(SCRIPT ${deploy_script})
+add_subdirectory(src)
 
 ## Flags (Release is the default)
 if(NOT CMAKE_BUILD_TYPE)
-    set(CMAKE_BUILD_TYPE Release)
+   set(CMAKE_BUILD_TYPE Release)
 endif()
