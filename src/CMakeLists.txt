@@ -51,6 +51,11 @@ target_link_libraries(shredder
         zxcvbn
 )
 
+if(MSVC)
+  set(shredder
+      ${CMAKE_SOURCE_DIR}/icon.rc)
+endif()
+
 
 
 include(GNUInstallDirs)
