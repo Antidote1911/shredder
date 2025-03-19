@@ -45,6 +45,12 @@
 #endif
 #endif
 
+/* For pre-compiled headers under windows */
+#ifdef _WIN32 
+#ifndef __MINGW32__
+
+#endif
+#endif
 
 /* Minimum number of characters in a incrementing/decrementing sequence match */
 #define MIN_SEQUENCE_LEN 3

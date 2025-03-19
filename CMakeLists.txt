@@ -9,15 +9,21 @@ set(CMAKE_AUTORCC ON)
 qt_standard_project_setup()
 
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
-# Find Botan early since the version affects subsequent compiler options
-find_package(Botan REQUIRED)
-if(BOTAN_VERSION VERSION_GREATER_EQUAL "3.0.0")
-    set(WITH_XC_BOTAN3 TRUE)
-elseif(BOTAN_VERSION VERSION_LESS "2.11.0")
-    # Check for minimum Botan version
-    set(WITH_XC_BOTAN3 TRUE)
-endif()
-include_directories(SYSTEM ${BOTAN_INCLUDE_DIR})
+
+find_package(
+    Botan 3.7.1
+    REQUIRED
+)
+
+# Generate target 'botan_test' with specific modules
+# Any Botan module can be listed here
+botan_generate(
+    botan_test
+auto_rng
+rng
+system_rng
+)
+
 
 add_executable(shredder
     WIN32 MACOSX_BUNDLE
@@ -41,7 +47,7 @@ target_link_libraries(shredder
     PRIVATE
         Qt::Core
         Qt::Widgets
-        ${BOTAN_LIBRARIES}
+        botan_test
         zxcvbn
 )
 

@@ -21,7 +21,7 @@
 
 #include <QSharedPointer>
 
-#include <botan/system_rng.h>
+#include "botan_all.h"
 
 QSharedPointer<Random> Random::m_instance;
 
