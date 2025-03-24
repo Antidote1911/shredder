@@ -44,7 +44,7 @@ jobs:
       run: |
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         cd botan-3.7.1
-        python configure.py --cc=msvc --build-tool=ninja --os=windows --minimized-build --disable-cc-tests --enable-modules=auto_rng,rng,system_rng,chacha_rng
+        python configure.py --cc=msvc --os=windows --minimized-build --disable-shared --amalgamation --build-tool=ninja --disable-cc-tests --enable-modules=auto_rng,rng,system_rng,chacha_rng
         ninja
         ninja install       
 

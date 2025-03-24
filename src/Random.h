@@ -20,7 +20,7 @@
 
 #include <QSharedPointer>
 
-#include <botan/rng.h>
+#include <botan_all.h>
 
 class Random
 {
