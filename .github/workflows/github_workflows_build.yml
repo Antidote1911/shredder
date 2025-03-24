@@ -28,28 +28,18 @@ jobs:
         modules:      qtmultimedia
         setup-python: false
         
-        
-    - name: Download Botan 3.7.1 source
-      run: |
-        curl -L https://github.com/randombit/botan/archive/refs/tags/3.7.1.tar.gz -o botan-3.7.1.tar.gz
-        tar -xzf botan-3.7.1.tar.gz
-        
-    - name: build botan
-      shell: cmd
-      run: |
-        call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
-        cd botan-3.7.1
-        python configure.py --cc=msvc --os=windows --minimized-build --disable-shared --amalgamation --build-tool=ninja --prefix=/usr/local/botan --disable-cc-tests --enable-modules=auto_rng,rng,system_rng,chacha_rng
-        ninja
-        ninja install
-        ls
+    - name: Set up Rust
+      uses: actions-rs/toolchain@v1
+      with:
+        toolchain: stable
+        override: true
 
     - name: build
       shell: cmd
       run: |
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         set CL=/MP
-        cmake -S . -B build -G "Ninja Multi-Config" -DBotan_DIR=/usr/local/botan
+        cmake -S . -B build -G "Ninja Multi-Config"
         cmake --build build --config Release
         
     - name: deploy

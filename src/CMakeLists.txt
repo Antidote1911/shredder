@@ -10,9 +10,19 @@ qt_standard_project_setup()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../cmake)
 
+find_package(
+    Botan 3.7.1
+    REQUIRED
+)
 
-find_package(Botan REQUIRED)
-
+# Generate target 'botan_test' with specific modules
+# Any Botan module can be listed here
+botan_generate(
+    botan_test
+auto_rng
+rng
+system_rng
+)
 
 
 add_executable(shredder
@@ -24,6 +34,7 @@ add_executable(shredder
     Config.cpp Config.h Global.h PasswordGenerator.cpp PasswordGenerator.h PasswordHealth.cpp PasswordHealth.h Random.cpp Random.h
     Clipboard.cpp Clipboard.h
     rsc.qrc
+
     Font.cpp Font.h
 
 )
@@ -36,7 +47,7 @@ target_link_libraries(shredder
     PRIVATE
         Qt::Core
         Qt::Widgets
-        Botan::botan
+        botan_test
         zxcvbn
 )
 
