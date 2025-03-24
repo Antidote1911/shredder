@@ -24,8 +24,8 @@ endif (UNIX)
 
 if (WIN32)
     # Specify the path to the Botan library
-    set(BOTAN_INCLUDE_DIR "C:/botan/include")
-    set(BOTAN_LIB_DIR "C:/botan/lib")
+    set(BOTAN_INCLUDE_DIR "C:/Botan/include")
+    set(BOTAN_LIB_DIR "C:/Botan/lib")
     include_directories(${BOTAN_INCLUDE_DIR})
     # Specify the Botan library to link against
     link_directories(${BOTAN_LIB_DIR})
