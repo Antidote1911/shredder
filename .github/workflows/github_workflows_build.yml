@@ -53,8 +53,8 @@ jobs:
       run: |
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         set CL=/MP
-        nmake -S . -B build -G "Ninja Multi-Config"
-        nmake --build build --config Release
+        cmake -S . -B build -G "Ninja Multi-Config"
+        cmake --build build --config Release
         
     - name: deploy
       run:  |
