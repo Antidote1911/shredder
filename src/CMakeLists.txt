@@ -10,15 +10,28 @@ qt_standard_project_setup()
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_LIST_DIR}/../cmake)
 
-# Find Botan early since the version affects subsequent compiler options
-find_package(Botan REQUIRED)
-if(BOTAN_VERSION VERSION_GREATER_EQUAL "3.0.0")
+if (UNIX)
+    # Find Botan early since the version affects subsequent compiler options
+    find_package(Botan REQUIRED)
+  if(BOTAN_VERSION VERSION_GREATER_EQUAL "3.0.0")
     set(WITH_XC_BOTAN3 TRUE)
-elseif(BOTAN_VERSION VERSION_LESS "2.11.0")
+  elseif(BOTAN_VERSION VERSION_LESS "2.11.0")
     # Check for minimum Botan version
     message(FATAL_ERROR "Botan 2.11.0 or higher is required")   
-endif()
-include_directories(SYSTEM ${BOTAN_INCLUDE_DIR})
+   endif()
+   include_directories(SYSTEM ${BOTAN_INCLUDE_DIR})
+endif (UNIX)
+
+if (WIN32)
+    # Specify the path to the Botan library
+    set(BOTAN_INCLUDE_DIR "C:/botan/include")
+    set(BOTAN_LIB_DIR "C:/botan/lib")
+    include_directories(${BOTAN_INCLUDE_DIR})
+    # Specify the Botan library to link against
+    link_directories(${BOTAN_LIB_DIR})
+    find_library(BOTAN_LIBRARIES botan.lib PATHS ${BOTAN_LIB_DIR})
+endif (WIN32)
+
 
 add_executable(shredder
     WIN32 MACOSX_BUNDLE
