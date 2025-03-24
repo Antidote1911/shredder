@@ -135,6 +135,7 @@ function(botan_generate TARGET_NAME MODULES)
             $<$<BOOL:${MINGW}>:--os=mingw>
             --amalgamation
             --minimized-build
+            --build-targets=shared
             --disable-static-library
             --enable-modules=${ENABLE_MODULES_LIST}
     )
