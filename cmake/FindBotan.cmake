@@ -138,6 +138,7 @@ function(botan_generate TARGET_NAME MODULES)
             --build-targets=shared
             --disable-static-library
             --enable-modules=${ENABLE_MODULES_LIST}
+            make
     )
 
     # Create target
