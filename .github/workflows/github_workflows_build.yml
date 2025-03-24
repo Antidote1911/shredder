@@ -41,7 +41,8 @@ jobs:
         cd botan-3.7.1
         python configure.py --cc=msvc --os=windows --minimized-build --disable-shared --amalgamation --build-tool=ninja --disable-cc-tests --enable-modules=auto_rng,rng,system_rng,chacha_rng
         ninja
-        ninja install       
+        ninja install
+        ls
 
     - name: build
       shell: cmd
