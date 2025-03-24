@@ -28,11 +28,6 @@ jobs:
         modules:      qtmultimedia
         setup-python: false
         
-    - name: Set up Rust
-      uses: actions-rs/toolchain@v1
-      with:
-        toolchain: stable
-        override: true
         
     - name: Download Botan 3.7.1 source
       run: |
