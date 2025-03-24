@@ -28,14 +28,14 @@ add_library(Botan STATIC)
 target_sources(
         Botan
         PUBLIC
-        C:/Botan/build/botan_all.h
+        C:/Botan/botan_all.h
         PRIVATE
-        C:/Botan/build/botan_all.cpp
+        C:/Botan/botan_all.cpp
 )
 target_include_directories(
         Botan
         PUBLIC
-        C:/Botan/build
+        C:/Botan
 )
 endif (WIN32)
 
