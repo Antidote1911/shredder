@@ -26,10 +26,10 @@ if (WIN32)
     # Specify the path to the Botan library
     set(BOTAN_INCLUDE_DIR "C:/Botan/include")
     set(BOTAN_LIB_DIR "C:/Botan/lib")
-    include_directories(${BOTAN_INCLUDE_DIR})
+    include_directories(SYSTEM ${BOTAN_INCLUDE_DIR})
     # Specify the Botan library to link against
     link_directories(${BOTAN_LIB_DIR})
-    find_library(BOTAN_LIBRARIES botan.lib PATHS ${BOTAN_LIB_DIR})
+    find_library(${BOTAN_LIB} botan-3.lib PATHS ${BOTAN_LIB_DIR})
 endif (WIN32)
 
 
@@ -54,7 +54,7 @@ target_link_libraries(shredder
     PRIVATE
         Qt::Core
         Qt::Widgets
-        ${BOTAN_LIBRARIES}
+        ${${BOTAN_LIB}}
         zxcvbn
 )
 
