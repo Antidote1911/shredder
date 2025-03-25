@@ -16,7 +16,7 @@ jobs:
     - name: Setup msbuild
       uses: microsoft/setup-msbuild@v2
       with:
-        vs-version: 16
+        vs-version: '[17,18)'  # 17.xx
         msbuild-architecture: x64
         
     - name: Install Qt
@@ -39,8 +39,7 @@ jobs:
       run: |
         call "C:\Program Files\Microsoft Visual Studio\2022\Enterprise\VC\Auxiliary\Build\vcvars64.bat"
         set CL=/MP
-        vcpkg install botan:x64-windows botan:x64-windows-static
-        cmake -S . -B build
+        cmake -S . -B build -G "Ninja Multi-Config"
         cmake --build build --config Release
         
     - name: deploy

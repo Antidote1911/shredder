@@ -135,15 +135,13 @@ function(botan_generate TARGET_NAME MODULES)
             $<$<BOOL:${MINGW}>:--os=mingw>
             --amalgamation
             --minimized-build
-            --build-targets=shared
-            --disable-static-library
+            --disable-shared
             --enable-modules=${ENABLE_MODULES_LIST}
-            make
     )
 
     # Create target
     set(TARGET ${TARGET_NAME})
-    add_library(${TARGET} SHARED)
+    add_library(${TARGET} STATIC)
     target_compile_features(
         ${TARGET}
         PUBLIC
