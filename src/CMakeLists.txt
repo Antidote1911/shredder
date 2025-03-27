@@ -36,29 +36,26 @@ add_executable(shredder
     Config.cpp Config.h Global.h PasswordGenerator.cpp PasswordGenerator.h PasswordHealth.cpp PasswordHealth.h Random.cpp Random.h
     Clipboard.cpp Clipboard.h
     rsc.qrc
-
     Font.cpp Font.h
-
 )
 
 
-add_library(zxcvbn SHARED zxcvbn/zxcvbn.cpp)
-target_link_libraries(zxcvbn)
+add_subdirectory(zxcvbn)
+set(ZXCVBN_LIBRARIES zxcvbn)
+
 
 target_link_libraries(shredder
     PRIVATE
         Qt::Core
         Qt::Widgets
         botan_test
-        zxcvbn
+        ${ZXCVBN_LIBRARIES}
 )
 
 if(MSVC)
   set(shredder
       ${CMAKE_SOURCE_DIR}/src/icon.rc)
 endif()
-
-
 
 include(GNUInstallDirs)
 

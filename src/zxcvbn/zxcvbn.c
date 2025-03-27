@@ -1,41 +1,40 @@
 /**********************************************************************************
  * C implementation of the zxcvbn password strength estimation method.
- * Copyright (c) 2015, Tony Evans
- * All rights reserved.
+ * Copyright (c) 2015-2017 Tony Evans
  *
- * Redistribution and use in source and binary forms, with or without modification, are
- * permitted provided that the following conditions are met:
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
  *
- * 1. Redistributions of source code must retain the above copyright notice, this list
- *    of conditions and the following disclaimer.
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
  *
- * 2. Redistributions in binary form must reproduce the above copyright notice, this
- *    list of conditions and the following disclaimer in the documentation and/or other
- *    materials provided with the distribution.
- *
- * 3. Neither the name of the copyright holder nor the names of its contributors may be
- *    used to endorse or promote products derived from this software without specific
- *    prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY
- * EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT
- * SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
- * INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED
- * TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
- * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
- * ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
- * DAMAGE.
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
  *
  **********************************************************************************/
 
-#include "zxcvbn.h"
+#include <zxcvbn.h>
 #include <ctype.h>
 #include <string.h>
 #include <stdint.h>
 #include <math.h>
 #include <float.h>
+
+/* printf */
+#ifdef __cplusplus
+#include <cstdio>
+#else
+#include <stdio.h>
+#endif
 
 #ifdef USE_DICT_FILE
 #if defined(USE_FILE_IO) || !defined(__cplusplus)
@@ -45,12 +44,6 @@
 #endif
 #endif
 
-/* For pre-compiled headers under windows */
-#ifdef _WIN32 
-#ifndef __MINGW32__
-
-#endif
-#endif
 
 /* Minimum number of characters in a incrementing/decrementing sequence match */
 #define MIN_SEQUENCE_LEN 3
@@ -67,7 +60,7 @@
 
 /* Additional entropy to add when password is made of multiple matches. Use different
  * amounts depending on whether the match is at the end of the password, or in the
- * middle. If the match is at the begining then there is no additional entropy.
+ * middle. If the match is at the beginning then there is no additional entropy.
  */
 #define MULTI_END_ADDITION 1.0
 #define MULTI_MID_ADDITION 1.75
@@ -176,7 +169,7 @@ static ZxcMatch_t *AllocMatch()
 static void AddResult(ZxcMatch_t **HeadRef, ZxcMatch_t *Nu, int MaxLen)
 {
     /* Adjust the entropy to be used for calculations depending on whether the passed match is
-     * at the begining, middle or end of the password
+     * at the beginning, middle or end of the password
      */
     if (Nu->Begin)
     {
@@ -228,13 +221,12 @@ static void AddMatchRepeats(ZxcMatch_t **Result, ZxcMatch_t *Match, const uint8_
 
     while(MaxLen >= (Len * RepeatCount))
     {
-        if (strncmp(reinterpret_cast<const char *>(Passwd),
-                    reinterpret_cast<const char *>(Rpt), Len) == 0)
+        if (strncmp((const char *)Passwd, (const char *)Rpt, Len) == 0)
         {
             /* Found a repeat */
             ZxcMatch_t *p = AllocMatch();
             p->Entrpy = Match->Entrpy + log(RepeatCount);
-            p->Type = static_cast<ZxcTypeMatch_t>(Match->Type + MULTIPLE_MATCH);
+            p->Type = (ZxcTypeMatch_t)(Match->Type + MULTIPLE_MATCH);
             p->Length = Len * RepeatCount;
             p->Begin = Match->Begin;
             AddResult(Result, p, MaxLen);
@@ -494,9 +486,8 @@ typedef struct
     uint8_t Leeted[sizeof L33TChr];
     uint8_t UnLeet[sizeof L33TChr];
     uint8_t LeetCnv[sizeof L33TCnv / LEET_NORM_MAP_SIZE + 1];
- /*   uint8_t LeetChr[3]; */
     uint8_t First;
-    uint8_t PossChars[49];
+    uint8_t PossChars[CHARSET_SIZE];
 } DictWork_t;
 
 /**********************************************************************************
@@ -555,7 +546,7 @@ static void AddLeetChr(uint8_t c, int IsLeet, uint8_t *Leeted, uint8_t *UnLeet)
 
 /**********************************************************************************
  * Given details of a word match, update it with the entropy (as natural log of
- * number of possiblities)
+ * number of possibilities)
  */
 static void DictionaryEntropy(ZxcMatch_t *m, DictMatchInfo_t *Extra, const uint8_t *Pwd)
 {
@@ -618,7 +609,7 @@ static void DictionaryEntropy(ZxcMatch_t *m, DictMatchInfo_t *Extra, const uint8
         e += d;
     }
     /* Add entropy due to word's rank */
-    e += log(static_cast<double>(Extra->Rank));
+    e += log((double)Extra->Rank);
     m->Entrpy = e;
 }
 
@@ -687,22 +678,22 @@ static void DoDictMatch(const uint8_t *Passwd, int Start, int MaxLen, DictWork_t
                     if (r)
                     {
                         /* valid conversion from leet */
-                        DictWork_t w;
-                        w = *Wrk;
-                        w.StartLoc = NodeLoc;
-                        w.Ordinal = Ord;
-                        w.PwdLength += Len;
-                        w.Caps = Caps;
-                        w.Lower = Lower;
-                        w.First = *r;
-                        w.NumPossChrs = NumPossChrs;
-                        memcpy(w.PossChars, PossChars, sizeof w.PossChars);
+                        DictWork_t wrk;
+                        wrk = *Wrk;
+                        wrk.StartLoc = NodeLoc;
+                        wrk.Ordinal = Ord;
+                        wrk.PwdLength += Len;
+                        wrk.Caps = Caps;
+                        wrk.Lower = Lower;
+                        wrk.First = *r;
+                        wrk.NumPossChrs = NumPossChrs;
+                        memcpy(wrk.PossChars, PossChars, sizeof wrk.PossChars);
                         if (j)
                         {
-                            w.LeetCnv[i] = *r;
-                            AddLeetChr(*r, -1, w.Leeted, w.UnLeet);
+                            wrk.LeetCnv[i] = *r;
+                            AddLeetChr(*r, -1, wrk.Leeted, wrk.UnLeet);
                         }
-                        DoDictMatch(Pwd, Passwd - Pwd, MaxLen - Len, &w, Result, Extra, Lev+1);
+                        DoDictMatch(Pwd, Passwd - Pwd, MaxLen - Len, &wrk, Result, Extra, Lev + 1);
                     }
                 }
                 return;
@@ -795,7 +786,7 @@ static void UserMatch(ZxcMatch_t **Result, const char *Words[], const uint8_t *P
         int Caps = 0;
         int Lowers = 0;
         int Leets = 0;
-        const uint8_t *Wrd = reinterpret_cast<const uint8_t *>(Words[Rank]);
+        const uint8_t *Wrd = (const uint8_t *)(Words[Rank]);
         const uint8_t *Pwd = Passwd;
         memset(Extra.Leeted, 0, sizeof Extra.Leeted);
         memset(Extra.UnLeet, 0, sizeof Extra.UnLeet);
@@ -944,19 +935,19 @@ static const uint8_t UK_Shift[] = "!1\"2$4%5&7(9)0*8:;<,>.?/@'AaBbCcDdEeFfGgHhIi
 static const uint8_t US_Shift[] = "!1\"'#3$4%5&7(9)0*8:;<,>.?/@2AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz^6_-{[|\\}]~`";
 
 
-/* Neighour tables */
+/* Neighbour tables */
 static const uint8_t UK_Qwerty[48*7] =
 {
 /* key, left, up-left, up-right, right, down-right, down-left */
     '#', '\'',']',   0,   0,   0,   0,    '\'',';', '[', ']', '#',   0, '/',
-    ',', 'm', 'k', 'l', '.',   0,   0,    '-', '0',   0,   0, '-', 'p', 'o',
-    '.', ',', 'l', ';', '/',   0,   0,    '/', '.', ';', '\'',  0,   0,   0,
-    '0', '9',   0,   0, '-', 'p', 'o',    '1', '`',   0,   0, '2', 'q',   0,
+    ',', 'm', 'k', 'l', '.',   0,   0,    '-', '0',   0,   0, '=', '[', 'p',
+    '.', ',', 'l', ';', '/',   0,   0,    '/', '.', ';', '\'',  0,   0,   0, 
+    '0', '9',   0,   0, '-', 'p', 'o',    '1', '`',   0,   0, '2', 'q',   0, 
     '2', '1',   0,   0, '3', 'w', 'q',    '3', '2',   0,   0, '4', 'e', 'w',
     '4', '3',   0,   0, '5', 'r', 'e',    '5', '4',   0,   0, '6', 't', 'r',
     '6', '5',   0,   0, '7', 'y', 't',    '7', '6',   0,   0, '8', 'u', 'y',
     '8', '7',   0,   0, '9', 'i', 'u',    '9', '8',   0,   0, '0', 'o', 'i',
-    ';', 'l', 'o', 'p','\'', '/', '.',    '=', '-',   0,   0,   0, ']', '[',
+    ';', 'l', 'p', '[','\'', '/', '.',    '=', '-',   0,   0,   0, ']', '[',
     '[', 'p', '-', '=', ']', '\'',';',    '\\',  0,   0, 'a', 'z',   0,   0,
     ']', '[', '=',   0,   0, '#','\'',    '`',   0,   0,   0, '1',   0,   0,
     'a',   0, 'q', 'w', 's', 'z','\\',    'b', 'v', 'g', 'h', 'n',   0,   0,
@@ -1002,7 +993,7 @@ static const uint8_t US_Qwerty[47*7] =
     'x', 'z', 's', 'd', 'c',   0,   0,    'y', 't', '6', '7', 'u', 'h', 'g',
     'z',   0, 'a', 's', 'x',   0,   0,
 };
-static const uint8_t Dvorak[48*7] =
+static const uint8_t Dvorak[47*7] =
 {
     '\'',  0, '1', '2', ',', 'a',   0,    ',','\'', '2', '3', '.', 'o', 'a',
     '-', 's', '/', '=',   0,   0, 'z',    '.', ',', '3', '4', 'p', 'e', 'o',
@@ -1160,9 +1151,9 @@ static void SpatialMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, 
     for(CurLen = MaxLen; CurLen >= MIN_SPATIAL_LEN;CurLen = Len - 1)
     {
         Len = 0;
-        memset(&Extra, 0, sizeof Extra);
         for(k = Keyboards, Indx = 0; Indx < (sizeof Keyboards / sizeof Keyboards[0]); ++Indx, ++k)
         {
+            memset(&Extra, 0, sizeof Extra);
             Len = DoSptlMatch(Passwd, CurLen, k, &Extra);
             if (Len > 0)
             {
@@ -1170,7 +1161,7 @@ static void SpatialMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, 
                 int i, j, s;
                 double Degree, Entropy;
                 ZxcMatch_t *p;
-                Degree = (k->NumNear-1) - static_cast<double>(k->NumBlank) / static_cast<double>(k->NumKeys);
+                Degree = (k->NumNear-1) - (double)k->NumBlank / (double)k->NumKeys;
                 s = k->NumKeys;
                 if (k->Shifts)
                     s *= 2;
@@ -1213,7 +1204,6 @@ static void SpatialMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, 
                 p->Length = Len;
                 AddMatchRepeats(Result, p, Passwd, MaxLen);
                 AddResult(Result, p, MaxLen);
-                break;
             }
         }
     }
@@ -1254,7 +1244,7 @@ static const char *Formats[] =
     0
 };
 /* Possible separator characters that could be used */
-static const char DateSeperators[] = "/\\-_. ";
+static const char DateSeparators[] = "/\\-_. ";
 
 /**********************************************************************************
  * Try to match the password with the formats above.
@@ -1283,7 +1273,7 @@ static void DateMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, int
         {
             if (*Fmt == '?')
             {
-                if (!Sep && strchr(DateSeperators, *p))
+                if (!Sep && strchr(DateSeparators, *p))
                         Sep = *p;
                 Fail = (*p != Sep);
             }
@@ -1339,7 +1329,7 @@ static void DateMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, int
         {
             /* String matched the date, store result */
             double e;
-            ZxcMatch_t *p = AllocMatch();
+            ZxcMatch_t *match = AllocMatch();
 
             if (Len <= 4)
                 e = log(MAX_YEAR - MIN_YEAR + 1.0);
@@ -1349,12 +1339,12 @@ static void DateMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, int
                 e = log(31 * 12 * 100.0);
             if (Sep)
                 e += log(4.0);  /* Extra 2 bits for separator */
-            p->Entrpy = e;
-            p->Type = DATE_MATCH;
-            p->Length = Len;
-            p->Begin = Start;
-            AddMatchRepeats(Result, p, Passwd, MaxLen);
-            AddResult(Result, p, MaxLen);
+            match->Entrpy = e;
+            match->Type = DATE_MATCH;
+            match->Length = Len;
+            match->Begin = Start;
+            AddMatchRepeats(Result, match, Passwd, MaxLen);
+            AddResult(Result, match, MaxLen);
             PrevLen = Len;
         }
     }
@@ -1380,7 +1370,7 @@ static void RepeatMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, i
     int Len, i;
     uint8_t c;
     Passwd += Start;
-    /* Remember first char and the count its occurances */
+    /* Remember first char and the count its occurrences */
     c = *Passwd;
     for(Len = 1; (Len < MaxLen) && (c == Passwd[Len]); ++Len)
     { }
@@ -1406,13 +1396,12 @@ static void RepeatMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start, i
         int RepeatCount = 2;
         while(MaxLen >= (Len * RepeatCount))
         {
-            if (strncmp(reinterpret_cast<const char *>(Passwd), reinterpret_cast<const char *>(Rpt), Len) == 0)
+            if (strncmp((const char *)Passwd, (const char *)Rpt, Len) == 0)
             {
                 /* Found a repeat */
-                int c = Cardinality(Passwd, Len);
                 ZxcMatch_t *p = AllocMatch();
-                p->Entrpy = log(static_cast<double>(c)) * Len + log(RepeatCount);
-                p->Type = static_cast<ZxcTypeMatch_t>(BRUTE_MATCH + MULTIPLE_MATCH);
+                p->Entrpy = log((double)Cardinality(Passwd, Len)) * Len + log(RepeatCount);
+                p->Type = (ZxcTypeMatch_t)(BRUTE_MATCH + MULTIPLE_MATCH);
                 p->Length = Len * RepeatCount;
                 p->Begin = Start;
                 AddResult(Result, p, MaxLen);
@@ -1486,7 +1475,7 @@ static void SequenceMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start,
             Next = Passwd[0] + Dir;
             if (IsDigits && (Dir > 0) && (Next == ('9' + 1)) && (Passwd[1] == '0'))
             {
-                /* Incrementing digits, consider '0' to be same as a 'ten' character */
+                /* Incrementing digits, consider '0' to be same as a 'ten' character */ 
                 ++Len;
                 ++Passwd;
                 break;
@@ -1495,8 +1484,9 @@ static void SequenceMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start,
             {
                 ++Len;
                 ++Passwd;
+                break;
             }
-            else if ((Next > SetHigh) || (Next < SetLow) || (Passwd[1] != Next))
+            if ((Next > SetHigh) || (Next < SetLow) || (Passwd[1] != Next))
                 break;
             ++Len;
             ++Passwd;
@@ -1528,7 +1518,7 @@ static void SequenceMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start,
             p->Type = SEQUENCE_MATCH;
             p->Begin = Start;
             p->Length = i;
-            p->Entrpy = e + log(static_cast<double>(i));
+            p->Entrpy = e + log((double)i);
             AddMatchRepeats(Result, p, Pwd, MaxLen);
             AddResult(Result, p, MaxLen);
         }
@@ -1543,9 +1533,9 @@ static void SequenceMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start,
 
 /**********************************************************************************
  * Matching a password is treated as a problem of finding the minimum distance
- * between two vertexes in a graph. This is solved using Dijkstra's algorithm.
+ * between two vertices in a graph. This is solved using Dijkstra's algorithm.
  *
- * There  are a series of nodes (or vertexes in graph terminology) which correspond
+ * There  are a series of nodes (or vertices in graph terminology) which correspond
  * to points between each character of the password. Also there is a start node
  * before the first character and an end node after the last character.
  *
@@ -1556,8 +1546,8 @@ static void SequenceMatch(ZxcMatch_t **Result, const uint8_t *Passwd, int Start,
  * end node.
  *
  * Dijkstra's algorithm finds the combination of these part matches (or paths)
- * which gives the lowest entropy (or smallest distance) from begining to end
- * of the password.
+ * which gives the lowest entropy (or smallest distance) from beginning to end
+ * of the password. 
  */
 
 /* Struct to hold the data of a node (imaginary point between password characters) */
@@ -1579,13 +1569,13 @@ double ZxcvbnMatch(const char *Pwd, const char *UserDict[], ZxcMatch_t **Info)
     Node_t *Np;
     double e;
     int Len = strlen(Pwd);
-    const uint8_t *Passwd = reinterpret_cast<const uint8_t *>(Pwd);
+    const uint8_t *Passwd = (const uint8_t *)Pwd;
     uint8_t *RevPwd;
     /* Create the paths */
     Node_t *Nodes = MallocFn(Node_t, Len+1);
     memset(Nodes, 0, (Len+1) * sizeof *Nodes);
     i = Cardinality(Passwd, Len);
-    e = log(static_cast<double>(i));
+    e = log((double)i);
 
     /* Do matching for all parts of the password */
     for(i = 0; i < Len; ++i)
@@ -1646,18 +1636,18 @@ double ZxcvbnMatch(const char *Pwd, const char *UserDict[], ZxcMatch_t **Info)
     for(i = 0; i < Len; ++i)
     {
         int MaxLen = Len - i;
-        int j;
+        int k;
         if (!RevPwd[i])
             continue;
-        for(j = i+1; j <= Len; ++j)
+        for(k = i + 1; k <= Len; ++k)
         {
-            if (RevPwd[j])
+            if (RevPwd[k])
             {
                 Zp = AllocMatch();
                 Zp->Type = BRUTE_MATCH;
                 Zp->Begin = i;
-                Zp->Length = j - i;
-                Zp->Entrpy = e * (j - i);
+                Zp->Length = k - i;
+                Zp->Entrpy = e * (k - i);
                 AddResult(&(Nodes[i].Paths), Zp, MaxLen);
             }
         }
@@ -1670,15 +1660,15 @@ double ZxcvbnMatch(const char *Pwd, const char *UserDict[], ZxcMatch_t **Info)
     /* Reduce the paths using Dijkstra's algorithm */
     for(i = 0; i < Len; ++i)
     {
-        int j;
+        int k;
         double MinDist = DBL_MAX;
         int MinIdx = 0;
         /* Find the unvisited node with minimum distance or entropy */
-        for(Np = Nodes, j = 0; j < Len; ++j, ++Np)
+        for(Np = Nodes, k = 0; k < Len; ++k, ++Np)
         {
             if (!Np->Visit && (Np->Dist < MinDist))
             {
-                MinIdx = j;
+                MinIdx = k;
                 MinDist = Np->Dist;
             }
         }
