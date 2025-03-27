@@ -24,9 +24,6 @@ rng
 system_rng
 )
 
-
-
-
 add_executable(shredder
     WIN32 MACOSX_BUNDLE
     main.cpp
@@ -39,10 +36,8 @@ add_executable(shredder
     Font.cpp Font.h
 )
 
-
 add_subdirectory(zxcvbn)
 set(ZXCVBN_LIBRARIES zxcvbn)
-
 
 target_link_libraries(shredder
     PRIVATE

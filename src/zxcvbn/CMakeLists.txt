@@ -1,3 +1,5 @@
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
+
 add_library(zxcvbn STATIC zxcvbn.c)
 # Disable error-level shadow issues
 if(CC_HAS_Wshadow_compatible_local)
