@@ -25,6 +25,8 @@ system_rng
 )
 
 
+
+
 add_executable(shredder
     WIN32 MACOSX_BUNDLE
     main.cpp
@@ -40,7 +42,7 @@ add_executable(shredder
 )
 
 
-add_library(zxcvbn STATIC zxcvbn/zxcvbn.cpp)
+add_library(zxcvbn SHARED zxcvbn/zxcvbn.cpp)
 target_link_libraries(zxcvbn)
 
 target_link_libraries(shredder
