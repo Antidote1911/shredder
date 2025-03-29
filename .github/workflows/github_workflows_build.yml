@@ -55,12 +55,16 @@ jobs:
         rmdir /s /q build\src\Release\translations
         rmdir /s /q build\src\Release\tls
         del /F build\src\Release\botan_rng.lib
+        del /F build\src\Release\botan_rng.exp
         del /F build\src\Release\Qt6Network.dll
         del /F build\src\Release\D3Dcompiler_47.dll
         del /F build\src\Release\opengl32sw.dll
+        del /F build\src\Release\imageformats\qgif.dll
+        del /F build\src\Release\imageformats\qico.dll
+        del /F build\src\Release\imageformats\qjpeg.dll
 
     - name: Upload Artifacts
       uses: actions/upload-artifact@v4
       with:
-        name: shredder.zip
+        name: shredder_win_x64
         path: build/src/Release
